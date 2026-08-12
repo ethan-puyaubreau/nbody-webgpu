@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>N-Body · a galaxy on your GPU</title>
+    <meta
+      name="description"
+      content="A real-time gravitational N-body simulation computed on your GPU with WebGPU compute shaders."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+
+    <i class="corner tl"></i>
+    <i class="corner tr"></i>
+    <i class="corner bl"></i>
+    <i class="corner br"></i>
+
+    <header class="overlay masthead">
+      <span class="label">GPU N-Body · WGSL · real-time</span>
+      <h1>A <em>galaxy</em>,<br />integrated on your GPU.</h1>
+    </header>
+
+    <dl class="overlay telemetry">
+      <dt>fps</dt>
+      <dd id="hud-fps">—</dd>
+      <dt>bodies</dt>
+      <dd id="hud-bodies">—</dd>
+      <dt>pairwise / s</dt>
+      <dd id="hud-rate">—</dd>
+      <dt>frame ms</dt>
+      <dd id="hud-ms">—</dd>
+    </dl>
+
+    <section class="overlay lede">
+      <p>
+        Every frame, each body feels the gravity of every other, an O(N²) sum run as a
+        tiled WebGPU compute shader, stepped by a symplectic integrator so the disk keeps its
+        shape instead of drifting apart. <b>No server, no precompute.</b> It is all happening on
+        your GPU, right now. Drag to orbit, scroll to zoom.
+      </p>
+      <nav class="links">
+        <a href="https://ethan-puyaubreau.github.io" target="_blank" rel="noopener">ethan-puyaubreau.github.io ↗</a>
+        <a href="https://github.com/ethan-puyaubreau" target="_blank" rel="noopener">github ↗</a>
+        <a href="https://github.com/ethan-puyaubreau/nbody-webgpu" target="_blank" rel="noopener">source ↗</a>
+      </nav>
+    </section>
+
+    <aside class="overlay panel" id="panel">
+      <div class="panel-head">
+        <span class="label">Parameters</span>
+        <button id="panel-toggle" title="collapse">−</button>
+      </div>
+      <div class="panel-body">
+        <div class="field">
+          <span class="label" id="label-bodies">Bodies</span>
+          <select id="ctrl-bodies" aria-labelledby="label-bodies">
+            <option value="4096">4 096</option>
+            <option value="8192">8 192</option>
+            <option value="16384" selected>16 384</option>
+            <option value="32768">32 768</option>
+            <option value="65536">65 536</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <span class="label" id="label-g">Gravity G</span>
+          <span class="readout" id="val-g"></span>
+          <input id="ctrl-g" type="range" min="0.2" max="3" step="0.05" value="1" aria-labelledby="label-g val-g" />
+        </div>
+
+        <div class="row">
+          <span class="label" id="label-soft">Softening</span>
+          <span class="readout" id="val-soft"></span>
+          <input id="ctrl-soft" type="range" min="0.03" max="0.4" step="0.005" value="0.12" aria-labelledby="label-soft val-soft" />
+        </div>
+
+        <div class="row">
+          <span class="label" id="label-dt">Time step</span>
+          <span class="readout" id="val-dt"></span>
+          <input id="ctrl-dt" type="range" min="0.002" max="0.03" step="0.001" value="0.01" aria-labelledby="label-dt val-dt" />
+        </div>
+
+        <div class="row">
+          <span class="label" id="label-sub">Substeps</span>
+          <span class="readout" id="val-sub"></span>
+          <input id="ctrl-sub" type="range" min="1" max="4" step="1" value="1" aria-labelledby="label-sub val-sub" />
+        </div>
+
+        <div class="row">
+          <span class="label" id="label-size">Point size</span>
+          <span class="readout" id="val-size"></span>
+          <input id="ctrl-size" type="range" min="1" max="6" step="0.25" value="2.5" aria-labelledby="label-size val-size" />
+        </div>
+
+        <div class="buttons">
+          <button id="btn-pause">pause</button>
+          <button id="btn-reset">reset</button>
+        </div>
+      </div>
+    </aside>
+
+    <div id="fallback" hidden>
+      <h2>WebGPU required</h2>
+      <p></p>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

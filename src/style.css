@@ -1,0 +1,331 @@
+:root {
+  --bg: #07080b;
+  --ink: #ece8df;
+  --muted: #71747c;
+  --line: rgba(255, 176, 64, 0.14);
+  --line-strong: rgba(255, 176, 64, 0.34);
+  --amber: #ffae3b;
+  --amber-dim: #c98427;
+  --hot: #fff1da;
+  --pad: clamp(18px, 3.2vw, 34px);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 13px;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* the simulation itself is the backdrop */
+#scene {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  touch-action: none;
+}
+#scene:active {
+  cursor: grabbing;
+}
+
+/* faint vignette so the overlay edges have something to sit against */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(130% 130% at 50% 42%, transparent 52%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* instrument frame */
+.corner {
+  position: fixed;
+  width: 16px;
+  height: 16px;
+  border: 0 solid var(--line-strong);
+  pointer-events: none;
+  z-index: 5;
+}
+.corner.tl { top: 16px; left: 16px; border-top-width: 1px; border-left-width: 1px; }
+.corner.tr { top: 16px; right: 16px; border-top-width: 1px; border-right-width: 1px; }
+.corner.bl { bottom: 16px; left: 16px; border-bottom-width: 1px; border-left-width: 1px; }
+.corner.br { bottom: 16px; right: 16px; border-bottom-width: 1px; border-right-width: 1px; }
+
+.overlay {
+  position: fixed;
+  z-index: 10;
+}
+
+.label {
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* top-left identity */
+.masthead {
+  top: var(--pad);
+  left: var(--pad);
+  max-width: min(44ch, 60vw);
+}
+.masthead .label {
+  display: block;
+  margin-bottom: 10px;
+}
+.masthead h1 {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(26px, 4.4vw, 46px);
+  line-height: 1.04;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.masthead h1 em {
+  font-style: italic;
+  color: var(--amber);
+}
+
+/* top-right telemetry */
+.telemetry {
+  top: var(--pad);
+  right: var(--pad);
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 18px;
+  row-gap: 7px;
+  text-align: right;
+  border-right: 1px solid var(--line);
+  padding-right: 14px;
+}
+.telemetry dt {
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+}
+.telemetry dd {
+  font-variant-numeric: tabular-nums;
+  color: var(--amber);
+  font-weight: 500;
+}
+
+/* bottom-left blurb + links */
+.lede {
+  bottom: var(--pad);
+  left: var(--pad);
+  max-width: min(52ch, 68vw);
+}
+.lede p {
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+.lede p b {
+  color: var(--ink);
+  font-weight: 500;
+}
+.links {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.links a {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: 2px;
+  letter-spacing: 0.04em;
+  transition: color 0.18s, border-color 0.18s;
+}
+.links a:hover {
+  color: var(--amber);
+  border-color: var(--amber);
+}
+
+/* bottom-right control panel */
+.panel {
+  bottom: var(--pad);
+  right: var(--pad);
+  width: 268px;
+  background: rgba(7, 8, 11, 0.62);
+  backdrop-filter: blur(7px);
+  border: 1px solid var(--line);
+  padding: 14px 16px 16px;
+}
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.panel-body {
+  display: grid;
+  gap: 13px;
+}
+.panel.collapsed .panel-body {
+  display: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 6px 10px;
+}
+.row .label {
+  grid-column: 1;
+}
+.row .readout {
+  grid-column: 2;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+  min-width: 5ch;
+  text-align: right;
+}
+.row input[type="range"] {
+  grid-column: 1 / -1;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1px;
+  background: var(--line-strong);
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 11px;
+  height: 11px;
+  background: var(--amber);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 174, 59, 0.6);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border: none;
+  background: var(--amber);
+  border-radius: 50%;
+}
+input[type="range"]::-moz-range-track {
+  height: 1px;
+  background: var(--line-strong);
+}
+input[type="range"]::-moz-range-progress {
+  height: 1px;
+  background: var(--amber-dim);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+select {
+  appearance: none;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  padding: 6px 8px;
+  font: inherit;
+  letter-spacing: 0.04em;
+}
+select:focus {
+  outline: none;
+  border-color: var(--amber);
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+button {
+  flex: 1;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  padding: 7px 0;
+  font: inherit;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 10.5px;
+  cursor: pointer;
+  transition: background 0.16s, color 0.16s, border-color 0.16s;
+}
+button:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+button.is-active {
+  background: var(--amber);
+  color: #120a02;
+  border-color: var(--amber);
+}
+#panel-toggle {
+  flex: 0 0 auto;
+  width: 26px;
+  padding: 2px 0;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+/* fallback */
+#fallback {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 8vw;
+  z-index: 20;
+}
+/* #fallback's id selector outweighs the UA [hidden] rule, so spell the hidden
+   state out explicitly, otherwise it shows over a working canvas */
+#fallback[hidden] {
+  display: none;
+}
+#fallback h2 {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(28px, 6vw, 52px);
+  color: var(--amber);
+  margin-bottom: 16px;
+}
+#fallback p {
+  color: var(--muted);
+  max-width: 46ch;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+@media (max-width: 720px) {
+  .lede {
+    display: none;
+  }
+  .panel {
+    width: auto;
+    left: var(--pad);
+  }
+  .masthead {
+    max-width: 70vw;
+  }
+}
