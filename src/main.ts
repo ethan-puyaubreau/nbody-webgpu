@@ -91,10 +91,10 @@ async function boot(): Promise<void> {
       hudAt = now;
       const rate = fps.value;
       const interactions = sim.count * sim.count * (ui.paused() ? 0 : substeps) * rate;
-      setText("hud-fps", rate.toFixed(0));
-      setText("hud-ms", (1000 / Math.max(rate, 1)).toFixed(1));
-      setText("hud-bodies", formatCount(sim.count));
-      setText("hud-rate", formatRate(interactions));
+      setTextAnimated("hud-fps", rate.toFixed(0));
+      setTextAnimated("hud-ms", (1000 / Math.max(rate, 1)).toFixed(1));
+      setTextAnimated("hud-bodies", formatCount(sim.count));
+      setTextAnimated("hud-rate", formatRate(interactions));
     }
 
     requestAnimationFrame(frame);
@@ -155,6 +155,8 @@ function bound(inputId: string, labelId: string, fmt: (v: number) => string): ()
   const label = byId<HTMLElement>(labelId);
   const sync = (): void => {
     label.textContent = fmt(parseFloat(input.value));
+    const pct = ((parseFloat(input.value) - parseFloat(input.min)) / (parseFloat(input.max) - parseFloat(input.min))) * 100;
+    input.style.setProperty('--val', pct.toFixed(1));
   };
   input.addEventListener("input", sync);
   sync();
@@ -182,6 +184,16 @@ function formatRate(perSec: number): string {
 function setText(id: string, text: string): void {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
+}
+
+function setTextAnimated(id: string, text: string): void {
+  const el = document.getElementById(id);
+  if (!el) return;
+  setText(id, text);
+  el.classList.remove('is-updating');
+  void el.offsetWidth;
+  el.classList.add('is-updating');
+  el.addEventListener('animationend', () => el.classList.remove('is-updating'), { once: true });
 }
 
 function byId<T extends HTMLElement>(id: string): T {

@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&family=Space+Grotesk:wght@300;400;500&display=swap"
       rel="stylesheet"
     />
   </head>
@@ -24,19 +24,26 @@
     <i class="corner br"></i>
 
     <header class="overlay masthead">
-      <span class="label">GPU N-Body · WGSL · real-time</span>
       <h1>A <em>galaxy</em>,<br />integrated on your GPU.</h1>
     </header>
 
     <dl class="overlay telemetry">
-      <dt>fps</dt>
-      <dd id="hud-fps">—</dd>
-      <dt>bodies</dt>
-      <dd id="hud-bodies">—</dd>
-      <dt>pairwise / s</dt>
-      <dd id="hud-rate">—</dd>
-      <dt>frame ms</dt>
-      <dd id="hud-ms">—</dd>
+      <div class="hud-metric">
+        <dd id="hud-fps">—</dd>
+        <dt>fps</dt>
+      </div>
+      <div class="hud-metric">
+        <dd id="hud-bodies">—</dd>
+        <dt>bodies</dt>
+      </div>
+      <div class="hud-metric">
+        <dd id="hud-rate">—</dd>
+        <dt>pairwise / s</dt>
+      </div>
+      <div class="hud-metric">
+        <dd id="hud-ms">—</dd>
+        <dt>ms / frame</dt>
+      </div>
     </dl>
 
     <section class="overlay lede">
@@ -51,6 +58,7 @@
         <a href="https://github.com/ethan-puyaubreau" target="_blank" rel="noopener">github ↗</a>
         <a href="https://github.com/ethan-puyaubreau/nbody-webgpu" target="_blank" rel="noopener">source ↗</a>
       </nav>
+      <small class="tech-caption">WebGPU · WGSL · N-body O(N²)</small>
     </section>
 
     <aside class="overlay panel" id="panel">
