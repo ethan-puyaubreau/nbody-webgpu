@@ -1,4 +1,4 @@
-import { lookAt, multiply, perspective, type Mat4, type Vec3 } from "./math";
+import { lookAt, type Mat4, multiply, perspective, type Vec3 } from "./math";
 
 export class OrbitCamera {
   private azimuth = 0.6;

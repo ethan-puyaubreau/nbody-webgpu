@@ -8,8 +8,8 @@
   --amber-dim: #c98427;
   --hot: #fff1da;
   --pad: clamp(18px, 3.2vw, 34px);
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-ui: 'Space Grotesk', system-ui, sans-serif;
+  --font-display: "Fraunces Variable", Georgia, serif;
+  --font-ui: "Space Grotesk", system-ui, sans-serif;
 }
 
 * {
@@ -64,15 +64,41 @@ body::after {
   z-index: 5;
   animation: fadeSlideIn 0.6s ease 1.4s both;
 }
-.corner.tl { top: 16px; left: 16px; border-top-width: 1.5px; border-left-width: 1.5px; }
-.corner.tr { top: 16px; right: 16px; border-top-width: 1.5px; border-right-width: 1.5px; }
-.corner.bl { bottom: 16px; left: 16px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
-.corner.br { bottom: 16px; right: 16px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+.corner.tl {
+  top: 16px;
+  left: 16px;
+  border-top-width: 1.5px;
+  border-left-width: 1.5px;
+}
+.corner.tr {
+  top: 16px;
+  right: 16px;
+  border-top-width: 1.5px;
+  border-right-width: 1.5px;
+}
+.corner.bl {
+  bottom: 16px;
+  left: 16px;
+  border-bottom-width: 1.5px;
+  border-left-width: 1.5px;
+}
+.corner.br {
+  bottom: 16px;
+  right: 16px;
+  border-bottom-width: 1.5px;
+  border-right-width: 1.5px;
+}
 
 /* entrance choreography */
 @keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .overlay {
@@ -101,7 +127,7 @@ body::after {
   font-weight: 300;
   font-optical-sizing: auto;
   font-size: clamp(42px, 6.5vw, 80px);
-  line-height: 1.0;
+  line-height: 1;
   letter-spacing: -0.01em;
   color: var(--ink);
 }
@@ -110,7 +136,7 @@ body::after {
   color: var(--amber);
 }
 
-/* top-right telemetry — HUD instrument */
+/* top-right telemetry - HUD instrument */
 .telemetry {
   top: var(--pad);
   right: var(--pad);
@@ -146,8 +172,14 @@ body::after {
 }
 
 @keyframes valuePulse {
-  0%, 100% { color: var(--amber); }
-  50%       { color: var(--hot); text-shadow: 0 0 12px rgba(255, 241, 218, 0.35); }
+  0%,
+  100% {
+    color: var(--amber);
+  }
+  50% {
+    color: var(--hot);
+    text-shadow: 0 0 12px rgba(255, 241, 218, 0.35);
+  }
 }
 .telemetry dd.is-updating {
   animation: valuePulse 0.25s ease;
@@ -186,7 +218,9 @@ body::after {
   border-bottom: 1px solid var(--line-strong);
   padding-bottom: 2px;
   letter-spacing: 0.02em;
-  transition: color 0.18s, border-color 0.18s;
+  transition:
+    color 0.18s,
+    border-color 0.18s;
 }
 .links a:hover {
   color: var(--amber);
@@ -203,7 +237,7 @@ body::after {
   opacity: 0.6;
 }
 
-/* bottom-right control panel — cockpit */
+/* bottom-right control panel - cockpit */
 .panel {
   bottom: var(--pad);
   right: var(--pad);
@@ -288,7 +322,9 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--amber);
   border-radius: 50%;
   box-shadow: 0 0 8px rgba(255, 174, 59, 0.5);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
 }
 input[type="range"]:hover::-webkit-slider-thumb {
   transform: scale(1.2);
@@ -351,7 +387,10 @@ button {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.16s, color 0.16s, border-color 0.16s;
+  transition:
+    background 0.16s,
+    color 0.16s,
+    border-color 0.16s;
 }
 button:hover {
   border-color: var(--amber);

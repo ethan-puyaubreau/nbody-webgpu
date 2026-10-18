@@ -8,12 +8,6 @@
       name="description"
       content="A real-time gravitational N-body simulation computed on your GPU with WebGPU compute shaders."
     />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&family=Space+Grotesk:wght@300;400;500&display=swap"
-      rel="stylesheet"
-    />
   </head>
   <body>
     <canvas id="scene"></canvas>
@@ -29,19 +23,19 @@
 
     <dl class="overlay telemetry">
       <div class="hud-metric">
-        <dd id="hud-fps">—</dd>
+        <dd id="hud-fps">&#8212;</dd>
         <dt>fps</dt>
       </div>
       <div class="hud-metric">
-        <dd id="hud-bodies">—</dd>
+        <dd id="hud-bodies">&#8212;</dd>
         <dt>bodies</dt>
       </div>
       <div class="hud-metric">
-        <dd id="hud-rate">—</dd>
+        <dd id="hud-rate">&#8212;</dd>
         <dt>pairwise / s</dt>
       </div>
       <div class="hud-metric">
-        <dd id="hud-ms">—</dd>
+        <dd id="hud-ms">&#8212;</dd>
         <dt>ms / frame</dt>
       </div>
     </dl>
@@ -64,7 +58,7 @@
     <aside class="overlay panel" id="panel">
       <div class="panel-head">
         <span class="label">Parameters</span>
-        <button id="panel-toggle" title="collapse">−</button>
+        <button type="button" id="panel-toggle" title="collapse">−</button>
       </div>
       <div class="panel-body">
         <div class="field">
@@ -109,8 +103,8 @@
         </div>
 
         <div class="buttons">
-          <button id="btn-pause">pause</button>
-          <button id="btn-reset">reset</button>
+          <button type="button" id="btn-pause">pause</button>
+          <button type="button" id="btn-reset">reset</button>
         </div>
       </div>
     </aside>

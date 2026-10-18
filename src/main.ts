@@ -1,6 +1,11 @@
+import "@fontsource-variable/fraunces/opsz.css";
+import "@fontsource-variable/fraunces/opsz-italic.css";
+import "@fontsource/space-grotesk/latin-300.css";
+import "@fontsource/space-grotesk/latin-400.css";
+import "@fontsource/space-grotesk/latin-500.css";
 import "./style.css";
-import { Simulation, type StepParams } from "./simulation";
 import { OrbitCamera } from "./camera";
+import { Simulation, type StepParams } from "./simulation";
 
 const canvas = document.getElementById("scene") as HTMLCanvasElement;
 const fallback = document.getElementById("fallback") as HTMLElement;
@@ -12,13 +17,17 @@ boot().catch((err) => {
 
 async function boot(): Promise<void> {
   if (!navigator.gpu) {
-    showFallback("This demo runs on WebGPU, which your browser doesn't expose yet. Chrome, Edge or Safari 18+ will render it.");
+    showFallback(
+      "This demo runs on WebGPU, which your browser does not expose yet. Chrome, Edge or Safari 18+ will render it.",
+    );
     return;
   }
 
   const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
   if (!adapter) {
-    showFallback("No WebGPU adapter available. That usually means a headless or locked-down GPU. Try a different browser or machine.");
+    showFallback(
+      "No WebGPU adapter available. That usually means a headless or locked-down GPU. Try a different browser or machine.",
+    );
     return;
   }
 
@@ -33,7 +42,7 @@ async function boot(): Promise<void> {
 
   const context = canvas.getContext("webgpu");
   if (!context) {
-    showFallback("Couldn't get a WebGPU canvas context.");
+    showFallback("Could not get a WebGPU canvas context.");
     return;
   }
   const format = navigator.gpu.getPreferredCanvasFormat();
@@ -155,8 +164,9 @@ function bound(inputId: string, labelId: string, fmt: (v: number) => string): ()
   const label = byId<HTMLElement>(labelId);
   const sync = (): void => {
     label.textContent = fmt(parseFloat(input.value));
-    const pct = ((parseFloat(input.value) - parseFloat(input.min)) / (parseFloat(input.max) - parseFloat(input.min))) * 100;
-    input.style.setProperty('--val', pct.toFixed(1));
+    const pct =
+      ((parseFloat(input.value) - parseFloat(input.min)) / (parseFloat(input.max) - parseFloat(input.min))) * 100;
+    input.style.setProperty("--val", pct.toFixed(1));
   };
   input.addEventListener("input", sync);
   sync();
@@ -190,10 +200,10 @@ function setTextAnimated(id: string, text: string): void {
   const el = document.getElementById(id);
   if (!el) return;
   setText(id, text);
-  el.classList.remove('is-updating');
+  el.classList.remove("is-updating");
   void el.offsetWidth;
-  el.classList.add('is-updating');
-  el.addEventListener('animationend', () => el.classList.remove('is-updating'), { once: true });
+  el.classList.add("is-updating");
+  el.addEventListener("animationend", () => el.classList.remove("is-updating"), { once: true });
 }
 
 function byId<T extends HTMLElement>(id: string): T {

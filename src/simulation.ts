@@ -1,6 +1,6 @@
+import { buildGalaxy, DEFAULTS, type GalaxyParams } from "./galaxy";
 import nbodyWgsl from "./shaders/nbody.wgsl?raw";
 import renderWgsl from "./shaders/render.wgsl?raw";
-import { buildGalaxy, DEFAULTS, type GalaxyParams } from "./galaxy";
 
 const WORKGROUP = 256;
 
@@ -94,7 +94,9 @@ export class Simulation {
   }
 
   reset(count: number): void {
-    this.posBuffers?.forEach((b) => b.destroy());
+    this.posBuffers?.forEach((b) => {
+      b.destroy();
+    });
     this.velBuffer?.destroy();
 
     this.count = count;
@@ -175,7 +177,13 @@ export class Simulation {
     this.primed = true;
   }
 
-  render(encoder: GPUCommandEncoder, view: GPUTextureView, camera: Float32Array, viewport: [number, number], pointSize: number): void {
+  render(
+    encoder: GPUCommandEncoder,
+    view: GPUTextureView,
+    camera: Float32Array,
+    viewport: [number, number],
+    pointSize: number,
+  ): void {
     const cam = new Float32Array(20);
     cam.set(camera, 0);
     cam[16] = viewport[0];

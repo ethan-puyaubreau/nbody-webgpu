@@ -3,12 +3,12 @@
 // Forces are summed in tiles: each workgroup cooperatively stages a block of
 // bodies into shared memory, so the inner loop reads from on-chip storage
 // instead of hammering global memory N times per body. This is the classic
-// GPU-Gems tiling trick and it's where most of the speedup over a naive
+// GPU-Gems tiling trick and it is where most of the speedup over a naive
 // global-memory loop comes from.
 //
 // Integration is leapfrog (kick-drift). The velocity is staggered half a step
 // behind position, which is what makes it second-order and (more importantly
-// for a thing that runs forever) symplectic: energy wobbles but doesn't drift,
+// for a thing that runs forever) symplectic: energy wobbles but does not drift,
 // so the disk holds together instead of either flying apart or collapsing into
 // the softening floor. kickScale = 0.5 on the very first step performs the
 // initial half-kick that sets up the stagger; 1.0 thereafter.
@@ -42,7 +42,7 @@ fn integrate(
   let n = sim.n;
 
   // Out-of-range threads still have to march through the tile loop so their
-  // workgroupBarrier() calls line up with everyone else's; they just never
+  // workgroupBarrier() calls line up with everyone else's; they never
   // write anything back.
   var self_pos = vec3<f32>(0.0);
   if (i < n) {

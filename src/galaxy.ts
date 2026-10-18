@@ -27,7 +27,7 @@ export const DEFAULTS: Omit<GalaxyParams, "count"> = {
 };
 
 // Body 0 is the central mass sitting at rest at the origin. Everything else is
-// a disk on a roughly circular orbit, with the speed set from the enclosed mass
+// a disk on a nearly circular orbit, with the speed set from the enclosed mass
 // so the thing starts in approximate rotational balance instead of immediately
 // falling in. A little dispersion keeps it from looking like a clockwork ring.
 export function buildGalaxy(params: GalaxyParams): InitialState {
@@ -43,7 +43,7 @@ export function buildGalaxy(params: GalaxyParams): InitialState {
 
   for (let i = 1; i < count; i++) {
     // u^1.4 biases bodies inward so the core reads denser than the rim.
-    const r = rInner + (rOuter - rInner) * Math.pow(rand(), 1.4);
+    const r = rInner + (rOuter - rInner) * rand() ** 1.4;
     const theta = rand() * Math.PI * 2;
     const cx = Math.cos(theta);
     const cz = Math.sin(theta);
@@ -52,7 +52,7 @@ export function buildGalaxy(params: GalaxyParams): InitialState {
     const z = r * cz;
     const y = gaussian(rand) * thickness;
 
-    const enclosed = centralMass + diskMass * (r - rInner) / (rOuter - rInner);
+    const enclosed = centralMass + (diskMass * (r - rInner)) / (rOuter - rInner);
     const vCirc = Math.sqrt((g * enclosed) / r);
 
     // tangent in the disk plane, 90 degrees from the radial direction

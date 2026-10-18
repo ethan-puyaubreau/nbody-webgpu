@@ -8,7 +8,7 @@ struct Camera {
   view_proj: mat4x4<f32>,
   viewport: vec2<f32>, // pixels
   point_size: f32,     // pixels
-  v_max: f32,          // speed that maps to the hottest colour
+  v_max: f32,          // speed that maps to the hottest color
 };
 
 @group(0) @binding(0) var<uniform> cam: Camera;
