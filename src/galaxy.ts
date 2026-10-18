@@ -26,10 +26,23 @@ export const DEFAULTS: Omit<GalaxyParams, "count"> = {
   seed: 0x9e3779b9,
 };
 
-// Body 0 is the central mass sitting at rest at the origin. Everything else is
-// a disk on a nearly circular orbit, with the speed set from the enclosed mass
-// so the thing starts in approximate rotational balance instead of immediately
-// falling in. A little dispersion keeps it from looking like a clockwork ring.
+// The radius is r = rInner + (rOuter - rInner) * u^RADIAL_BIAS with u uniform
+// in [0, 1). An exponent above 1 moves bodies inward, so the core is denser
+// than the rim. The same exponent gives the enclosed disk mass: the fraction
+// of bodies inside r is x^(1/RADIAL_BIAS) with x = (r - rInner) / (rOuter - rInner).
+export const RADIAL_BIAS = 1.4;
+
+// Central mass plus the expected disk mass inside radius r.
+export function enclosedMass(params: GalaxyParams, r: number): number {
+  const { centralMass, diskMass, rInner, rOuter } = params;
+  const x = (r - rInner) / (rOuter - rInner);
+  return centralMass + diskMass * x ** (1 / RADIAL_BIAS);
+}
+
+// Body 0 is the central mass at rest at the origin. The other bodies form a
+// disk on nearly circular orbits. The speed comes from the enclosed mass, so
+// the disk starts in approximate rotational balance instead of falling in at
+// once. An 8 percent speed jitter breaks the clockwork ring.
 export function buildGalaxy(params: GalaxyParams): InitialState {
   const { count, g, centralMass, diskMass, rInner, rOuter, thickness, seed } = params;
   const rand = mulberry32(seed);
@@ -42,8 +55,7 @@ export function buildGalaxy(params: GalaxyParams): InitialState {
   positions[3] = centralMass; // w of body 0
 
   for (let i = 1; i < count; i++) {
-    // u^1.4 biases bodies inward so the core reads denser than the rim.
-    const r = rInner + (rOuter - rInner) * rand() ** 1.4;
+    const r = rInner + (rOuter - rInner) * rand() ** RADIAL_BIAS;
     const theta = rand() * Math.PI * 2;
     const cx = Math.cos(theta);
     const cz = Math.sin(theta);
@@ -52,10 +64,10 @@ export function buildGalaxy(params: GalaxyParams): InitialState {
     const z = r * cz;
     const y = gaussian(rand) * thickness;
 
-    const enclosed = centralMass + (diskMass * (r - rInner)) / (rOuter - rInner);
+    const enclosed = enclosedMass(params, r);
     const vCirc = Math.sqrt((g * enclosed) / r);
 
-    // tangent in the disk plane, 90 degrees from the radial direction
+    // Tangent in the disk plane, 90 degrees from the radial direction.
     const tangent: Vec3 = [-cz, 0, cx];
     const jitter = 1 + (rand() - 0.5) * 0.08;
 
@@ -84,7 +96,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-// Box-Muller, one of the pair is enough for a bit of scatter.
+// Box-Muller transform. One value of the pair is enough for the scatter.
 function gaussian(rand: () => number): number {
   const u = Math.max(rand(), 1e-7);
   const v = rand();
