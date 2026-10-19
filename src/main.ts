@@ -12,50 +12,108 @@ const fallback = document.getElementById("fallback") as HTMLElement;
 
 boot().catch((err) => {
   console.error(err);
-  showFallback("Something went wrong spinning up the GPU. The console has the details.");
+  const detail = err instanceof Error ? err.message.split("\n")[0] : String(err);
+  showFallback(`The GPU setup failed: ${detail}`);
 });
 
 async function boot(): Promise<void> {
   if (!navigator.gpu) {
-    showFallback(
-      "This demo runs on WebGPU, which your browser does not expose yet. Chrome, Edge or Safari 18+ will render it.",
-    );
+    showFallback("This page needs WebGPU, and this browser does not expose it. Chrome and Edge support it.");
     return;
   }
 
   const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
   if (!adapter) {
-    showFallback(
-      "No WebGPU adapter available. That usually means a headless or locked-down GPU. Try a different browser or machine.",
-    );
+    showFallback("No WebGPU adapter is available. The GPU is headless or restricted. Try another browser or machine.");
     return;
   }
 
-  const device = await adapter.requestDevice();
+  const requiredFeatures: GPUFeatureName[] = adapter.features.has("timestamp-query") ? ["timestamp-query"] : [];
+  const device = await adapter.requestDevice({ requiredFeatures });
   let deviceAlive = true;
-  device.lost.then((info) => {
+  let energyTimer: number | undefined;
+  // Stops the frame loop and the energy sampler: after a GPU failure both only repeat the error.
+  const stopRunning = (): void => {
     deviceAlive = false;
+    clearInterval(energyTimer);
+  };
+  device.addEventListener("uncapturederror", (event) => {
+    const message = (event as GPUUncapturedErrorEvent).error.message;
+    console.error(message);
+    stopRunning();
+    showFallback(`A GPU error occurred: ${message}`);
+  });
+  device.lost.then((info) => {
+    stopRunning();
     if (info.reason !== "destroyed") {
-      showFallback("The GPU device was lost. A reload normally brings it back.");
+      showFallback("The GPU device was lost. Reload the page to recover it.");
     }
   });
 
   const context = canvas.getContext("webgpu");
   if (!context) {
-    showFallback("Could not get a WebGPU canvas context.");
+    showFallback("The canvas did not return a WebGPU context.");
     return;
   }
   const format = navigator.gpu.getPreferredCanvasFormat();
   context.configure({ device, format, alphaMode: "opaque" });
 
   const sim = new Simulation(device, format);
+  await sim.validate();
   const camera = new OrbitCamera();
   camera.attach(canvas);
 
   const ui = wireControls();
-  sim.setParams(ui.params());
-  sim.reset(ui.bodies());
-  ui.onBodies((n) => sim.reset(n));
+  const params: StepParams = { g: 0, softening: 0, dt: 0 };
+  sim.setParams(ui.params(params));
+
+  // Incremented on every reset: an energy readback that straddles a reset is discarded.
+  let resetEpoch = 0;
+  let baseline: { e0: number; g: number; softening: number } | null = null;
+  const resetSim = (n: number): void => {
+    resetEpoch += 1;
+    baseline = null;
+    sim.reset(n);
+  };
+  resetSim(ui.bodies());
+  ui.onBodies(resetSim);
+
+  const hud = {
+    fps: byId("hud-fps"),
+    ms: byId("hud-ms"),
+    msLabel: byId("hud-ms-label"),
+    bodies: byId("hud-bodies"),
+    rate: byId("hud-rate"),
+    drift: byId("hud-drift"),
+  };
+
+  const sampleEnergy = async (): Promise<void> => {
+    const epoch = resetEpoch;
+    const g = params.g;
+    const softening = params.softening;
+    try {
+      const { kinetic, potential } = await sim.energy();
+      if (epoch !== resetEpoch) return;
+      const total = kinetic + potential;
+      if (baseline === null || baseline.g !== g || baseline.softening !== softening) {
+        baseline = { e0: total, g, softening };
+      }
+      const drift = ((total - baseline.e0) / Math.abs(baseline.e0)) * 100;
+      setTextAnimated(hud.drift, `${drift >= 0 ? "+" : "-"}${Math.abs(drift).toFixed(3)}%`);
+    } catch (err) {
+      // A reset during the readback rejects the promise: that sample is stale.
+      if (epoch !== resetEpoch) return;
+      console.error(err);
+    }
+  };
+  let energyPending = false;
+  energyTimer = window.setInterval(() => {
+    if (ui.paused() || energyPending) return;
+    energyPending = true;
+    sampleEnergy().finally(() => {
+      energyPending = false;
+    });
+  }, 500);
 
   let viewport: [number, number] = [1, 1];
   const resize = (): void => {
@@ -68,7 +126,7 @@ async function boot(): Promise<void> {
     }
     viewport = [w, h];
   };
-  window.addEventListener("resize", resize);
+  new ResizeObserver(resize).observe(canvas);
   resize();
 
   const fps = new Ema(0.1);
@@ -82,10 +140,9 @@ async function boot(): Promise<void> {
     last = now;
     const dt = Math.min(interval / 1000, 0.05);
     fps.push(1000 / Math.max(interval, 1));
-    resize();
 
     camera.update(dt);
-    sim.setParams(ui.params());
+    sim.setParams(ui.params(params));
 
     const encoder = device.createCommandEncoder();
     const substeps = ui.substeps();
@@ -99,11 +156,15 @@ async function boot(): Promise<void> {
     if (now - hudAt > 220) {
       hudAt = now;
       const rate = fps.value;
-      const interactions = sim.count * sim.count * (ui.paused() ? 0 : substeps) * rate;
-      setTextAnimated("hud-fps", rate.toFixed(0));
-      setTextAnimated("hud-ms", (1000 / Math.max(rate, 1)).toFixed(1));
-      setTextAnimated("hud-bodies", formatCount(sim.count));
-      setTextAnimated("hud-rate", formatRate(interactions));
+      const steps = ui.paused() ? 0 : sim.lastSteps;
+      const pairs = sim.count * sim.count * steps;
+      const gpuMs = sim.gpuMs;
+      const pairsPerSecond = gpuMs !== null ? pairs / (gpuMs / 1000) : pairs * rate;
+      setTextAnimated(hud.fps, rate.toFixed(0));
+      setTextAnimated(hud.ms, (gpuMs ?? 1000 / Math.max(rate, 1)).toFixed(1));
+      hud.msLabel.textContent = gpuMs !== null ? "gpu ms" : "frame ms";
+      setTextAnimated(hud.bodies, formatCount(sim.count));
+      setTextAnimated(hud.rate, formatRate(pairsPerSecond));
     }
 
     requestAnimationFrame(frame);
@@ -112,7 +173,7 @@ async function boot(): Promise<void> {
 }
 
 interface Controls {
-  params(): StepParams;
+  params(out: StepParams): StepParams;
   bodies(): number;
   substeps(): number;
   pointSize(): number;
@@ -141,14 +202,19 @@ function wireControls(): Controls {
   resetBtn.addEventListener("click", () => bodiesCb(parseInt(bodies.value, 10)));
   bodies.addEventListener("change", () => bodiesCb(parseInt(bodies.value, 10)));
 
-  // collapse the panel on small screens / on demand
+  // The panel collapses on small screens or on demand.
   const panel = byId<HTMLElement>("panel");
   byId<HTMLButtonElement>("panel-toggle").addEventListener("click", () => {
     panel.classList.toggle("collapsed");
   });
 
   return {
-    params: () => ({ g: g(), softening: soft(), dt: dt() }),
+    params: (out) => {
+      out.g = g();
+      out.softening = soft();
+      out.dt = dt();
+      return out;
+    },
     bodies: () => parseInt(bodies.value, 10),
     substeps: () => Math.round(sub()),
     pointSize: () => size(),
@@ -191,28 +257,24 @@ function formatRate(perSec: number): string {
   return `${perSec.toFixed(0)} /s`;
 }
 
-function setText(id: string, text: string): void {
-  const el = document.getElementById(id);
-  if (el) el.textContent = text;
+// Two class names map to two identically shaped keyframes: swapping them
+// changes the animation name, which restarts the pulse without reading layout.
+function setTextAnimated(el: HTMLElement, text: string): void {
+  el.textContent = text;
+  const next = el.classList.contains("pulse-a") ? "pulse-b" : "pulse-a";
+  el.classList.remove("pulse-a", "pulse-b");
+  el.classList.add(next);
 }
 
-function setTextAnimated(id: string, text: string): void {
-  const el = document.getElementById(id);
-  if (!el) return;
-  setText(id, text);
-  el.classList.remove("is-updating");
-  void el.offsetWidth;
-  el.classList.add("is-updating");
-  el.addEventListener("animationend", () => el.classList.remove("is-updating"), { once: true });
-}
-
-function byId<T extends HTMLElement>(id: string): T {
+function byId<T extends HTMLElement = HTMLElement>(id: string): T {
   const el = document.getElementById(id);
   if (!el) throw new Error(`missing element #${id}`);
   return el as T;
 }
 
+// The first message wins: later failures are usually consequences of the first.
 function showFallback(message: string): void {
+  if (!fallback.hidden) return;
   fallback.querySelector("p")!.textContent = message;
   fallback.hidden = false;
   canvas.style.display = "none";

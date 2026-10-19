@@ -136,7 +136,7 @@ body::after {
   color: var(--amber);
 }
 
-/* top-right telemetry - HUD instrument */
+/* top-right telemetry: HUD instrument */
 .telemetry {
   top: var(--pad);
   right: var(--pad);
@@ -181,8 +181,22 @@ body::after {
     text-shadow: 0 0 12px rgba(255, 241, 218, 0.35);
   }
 }
-.telemetry dd.is-updating {
+/* Same frames under a second name: swapping the names restarts the animation. */
+@keyframes valuePulseB {
+  0%,
+  100% {
+    color: var(--amber);
+  }
+  50% {
+    color: var(--hot);
+    text-shadow: 0 0 12px rgba(255, 241, 218, 0.35);
+  }
+}
+.telemetry dd.pulse-a {
   animation: valuePulse 0.25s ease;
+}
+.telemetry dd.pulse-b {
+  animation: valuePulseB 0.25s ease;
 }
 
 /* bottom-left description */
@@ -237,7 +251,7 @@ body::after {
   opacity: 0.6;
 }
 
-/* bottom-right control panel - cockpit */
+/* bottom-right control panel */
 .panel {
   bottom: var(--pad);
   right: var(--pad);
@@ -300,7 +314,7 @@ body::after {
   grid-column: 1 / -1;
 }
 
-/* Range slider with progress fill */
+/* range slider with progress fill */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -459,10 +473,28 @@ button.is-active {
   .masthead h1 {
     font-size: clamp(32px, 8vw, 52px);
   }
+  /* h1 wraps to up to 3 lines of 1em each: the telemetry starts below them */
   .telemetry {
-    gap: 14px;
+    top: calc(var(--pad) + 3 * clamp(32px, 8vw, 52px) + 12px);
+    left: var(--pad);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px 14px;
   }
   .telemetry dd {
-    font-size: clamp(18px, 5vw, 24px);
+    font-size: clamp(15px, 4.4vw, 20px);
+  }
+}
+
+/* final state only: no entrance stagger, no value pulse */
+@media (prefers-reduced-motion: reduce) {
+  .corner,
+  .masthead,
+  .telemetry,
+  .lede,
+  .panel,
+  .telemetry dd.pulse-a,
+  .telemetry dd.pulse-b {
+    animation: none;
   }
 }

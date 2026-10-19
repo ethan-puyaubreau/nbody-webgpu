@@ -18,10 +18,15 @@ export class OrbitCamera {
       this.lastY = e.clientY;
       target.setPointerCapture(e.pointerId);
     });
-    target.addEventListener("pointerup", (e) => {
+    const endDrag = (e: PointerEvent): void => {
       this.dragging = false;
-      target.releasePointerCapture(e.pointerId);
-    });
+      if (target.hasPointerCapture(e.pointerId)) {
+        target.releasePointerCapture(e.pointerId);
+      }
+    };
+    target.addEventListener("pointerup", endDrag);
+    target.addEventListener("pointercancel", endDrag);
+    target.addEventListener("lostpointercapture", endDrag);
     target.addEventListener("pointermove", (e) => {
       if (!this.dragging) return;
       this.azimuth -= (e.clientX - this.lastX) * 0.006;
