@@ -13,7 +13,7 @@
     "format": "biome format --write",
     "check:code": "biome check && tsc --noEmit && vitest run",
     "check:style": "node scripts/check-style.mjs",
-    "check": "pnpm check:code"
+    "check": "pnpm check:code && pnpm check:style"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
